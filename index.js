@@ -7,7 +7,7 @@ const app = express();
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieSession({ 
-    keys: ['sdfghj']
+    keys: ['sdfghj'] // key is random string
 }));
 
 app.get('/signup', (req, res) => {
@@ -40,7 +40,7 @@ app.post('/signup', async (req, res) => {
     }
 
     // create a user
-    const user = await usersRepo.create({ email, password});
+    const user = await usersRepo.create({ email, password });
 
     // store id of that user inside the users cookie
     req.session.userId = user.id;
@@ -74,7 +74,12 @@ app.post('/signin', async (req, res) => {
         return res.send('Email not found');
     };
 
-    if (user.password !== password) {
+    const validPassword = await usersRepo.comparePasswords(
+        user.password,
+        password
+    );
+
+    if (!validPassword) {
         return res.send('Invalid password');
     };
 
