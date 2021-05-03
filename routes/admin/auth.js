@@ -3,63 +3,64 @@ const { check, validationResult } = require('express-validator');
 
 const usersRepo = require('../../repositories/users');
 const signupTemplate = require('../../views/admin/auth/signup');
-const singinTemplate = require('../../views/admin/auth/signin');
-const { requireEmail, requirePassword, requirePasswordconfirmation } = require('./validators');
+const signinTemplate = require('../../views/admin/auth/signin');
+const {
+  requireEmail,
+  requirePassword,
+  requirePasswordConfirmation
+} = require('./validators');
 
-// subrouter
 const router = express.Router();
 
-
 router.get('/signup', (req, res) => {
-    res.send(signupTemplate({ req }));
+  res.send(signupTemplate({ req }));
 });
 
-router.post('/signup', [
-    requireEmail,
-    requirePassword,
-    requirePasswordconfirmation
-    ],
-    async (req, res) => {
-    const errors =  validationResult(req);
+router.post(
+  '/signup',
+  [requireEmail, requirePassword, requirePasswordConfirmation],
+  async (req, res) => {
+    const errors = validationResult(req);
     console.log(errors);
 
-    const { email, password, passwordconfirmation } = req.body;
+    const { email, password, passwordConfirmation } = req.body;
     const user = await usersRepo.create({ email, password });
+
     req.session.userId = user.id;
 
-    res.send('Account created');
-});
+    res.send('Account created!!!');
+  }
+);
 
 router.get('/signout', (req, res) => {
-    req.session = null;
-    res.send('You are logged out');
+  req.session = null;
+  res.send('You are logged out');
 });
 
 router.get('/signin', (req, res) => {
-    res.send(singinTemplate());
+  res.send(signinTemplate());
 });
 
 router.post('/signin', async (req, res) => {
-    const { email, password } = req.body;
+  const { email, password } = req.body;
 
-    const user = await usersRepo.getOneBy({ email });
+  const user = await usersRepo.getOneBy({ email });
 
-    if (!user) {
-        return res.send('Email not found');
-    };
+  if (!user) {
+    return res.send('Email not found');
+  }
 
-    const validPassword = await usersRepo.comparePasswords(
-        user.password,
-        password
-    );
+  const validPassword = await usersRepo.comparePasswords(
+    user.password,
+    password
+  );
+  if (!validPassword) {
+    return res.send('Invalid password');
+  }
 
-    if (!validPassword) {
-        return res.send('Invalid password');
-    };
+  req.session.userId = user.id;
 
-    req.session.userId = user.id;
-
-    res.send('You are signed in');
+  res.send('You are signed in!!!');
 });
 
 module.exports = router;
