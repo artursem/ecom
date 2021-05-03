@@ -40,11 +40,32 @@ router.get('/signout', (req, res) => {
   res.send('You are logged out');
 });
 
-router.get('/signin', (req, res) => {
-  res.send(signinTemplate());
+router.get('/signin', [
+    check('email')
+    .trim()
+    .normalizeEmail()
+    .isEmail()
+    .withMessage('Must provide a valid email')
+    .custom(async (email) => {
+        const user = await usersRepo.getOneBy({ email });
+        if (!user) {
+            throw new Error('Email not found');
+        }
+    }),
+    check('password').trim()
+], 
+    async (req, res) => {
+           
+    const errors = validationResult(req);
+    console.log(errors);
+
+    
+    res.send(signinTemplate());
 });
 
 router.post('/signin', async (req, res) => {
+
+
   const { email, password } = req.body;
 
   const user = await usersRepo.getOneBy({ email });
@@ -57,6 +78,7 @@ router.post('/signin', async (req, res) => {
     user.password,
     password
   );
+
   if (!validPassword) {
     return res.send('Invalid password');
   }

@@ -10,7 +10,6 @@ const getError = (errors, prop) => {
 
 module.exports = ({ req, errors }) => {
 
-
   return layout({
     content: `
     <div>
