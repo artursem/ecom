@@ -30,7 +30,7 @@ class UsersRepository {
     attrs.id = this.randomId();
 
     const salt = crypto.randomBytes(8).toString('hex');
-    const buf =  await scrypt(attrs.password, salt, 64);    
+    const buf = await scrypt(attrs.password, salt, 64);
 
     const records = await this.getAll();
     const record = {
@@ -45,8 +45,8 @@ class UsersRepository {
   }
 
   async comparePasswords(saved, supplied) {
-    // saved -> password in my db. hashed.salt
-    // supplied -> user sign in
+    // Saved -> password saved in our database. 'hashed.salt'
+    // Supplied -> password given to us by a user trying sign in
     const [hashed, salt] = saved.split('.');
     const hashedSuppliedBuf = await scrypt(supplied, salt, 64);
 

@@ -1,11 +1,12 @@
 module.exports = ({ content }) => {
-    return `
+  return `
     <!DOCTYPE html>
-    <head>
-    </head>
-    <body>
+    <html>
+      <head>
+      </head>
+      <body>
         ${content}
-    </body>
-    </hmtl>
-    `
+      </body>
+    </html
+  `;
 };
