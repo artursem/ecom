@@ -7,7 +7,9 @@ const signinTemplate = require('../../views/admin/auth/signin');
 const {
   requireEmail,
   requirePassword,
-  requirePasswordConfirmation
+  requirePasswordConfirmation,
+  requireEmailExists,
+  requireValidPasswordForUser
 } = require('./validators');
 
 const router = express.Router();
@@ -21,9 +23,9 @@ router.post(
   [requireEmail, requirePassword, requirePasswordConfirmation],
   async (req, res) => {
     const errors = validationResult(req);
-    
+
     if (!errors.isEmpty()) {
-        return res.send(signupTemplate({ req, errors }));
+      return res.send(signupTemplate({ req, errors }));
     }
 
     const { email, password, passwordConfirmation } = req.body;
@@ -40,52 +42,28 @@ router.get('/signout', (req, res) => {
   res.send('You are logged out');
 });
 
-router.get('/signin', [
-    check('email')
-    .trim()
-    .normalizeEmail()
-    .isEmail()
-    .withMessage('Must provide a valid email')
-    .custom(async (email) => {
-        const user = await usersRepo.getOneBy({ email });
-        if (!user) {
-            throw new Error('Email not found');
-        }
-    }),
-    check('password').trim()
-], 
-    async (req, res) => {
-           
+router.get('/signin', (req, res) => {
+  res.send(signinTemplate({}));
+});
+
+router.post(
+  '/signin',
+  [requireEmailExists, requireValidPasswordForUser],
+  async (req, res) => {
     const errors = validationResult(req);
-    console.log(errors);
 
-    
-    res.send(signinTemplate());
-});
+    if (!errors.isEmpty()) {
+      return res.send(signinTemplate({ errors }));
+    }
 
-router.post('/signin', async (req, res) => {
+    const { email } = req.body;
 
+    const user = await usersRepo.getOneBy({ email });
 
-  const { email, password } = req.body;
+    req.session.userId = user.id;
 
-  const user = await usersRepo.getOneBy({ email });
-
-  if (!user) {
-    return res.send('Email not found');
+    res.send('You are signed in!!!');
   }
-
-  const validPassword = await usersRepo.comparePasswords(
-    user.password,
-    password
-  );
-
-  if (!validPassword) {
-    return res.send('Invalid password');
-  }
-
-  req.session.userId = user.id;
-
-  res.send('You are signed in!!!');
-});
+);
 
 module.exports = router;
